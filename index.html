@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="POPVIL Facebook 运动装短视频 Hook 选题库：近 7 天美国市场内容信号、评分、风险与来源。">
+  <title>POPVIL Hook Lab</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23101616'/%3E%3Cpath d='M14 38V20h18c10 0 16 5 16 14S42 48 32 48H22V38h10c4 0 6-1 6-4s-2-4-6-4h-8v8z' fill='%23d9ff57'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --ink: #121716;
+      --muted: #61706b;
+      --line: #dce4e0;
+      --surface: #ffffff;
+      --soft: #f3f7f5;
+      --accent: #d9ff57;
+      --accent-deep: #2b4f27;
+      --purple: #6f58cc;
+      --risk-low: #e3f6e7;
+      --risk-mid: #fff1c8;
+      --risk-high: #ffe1df;
+      --shadow: 0 14px 34px rgba(20, 42, 34, .08);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: #edf3f0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    a { color: inherit; }
+
+    .topbar {
+      background: var(--ink);
+      color: #fff;
+      border-bottom: 5px solid var(--accent);
+    }
+    .topbar-inner, main { width: min(1460px, calc(100% - 40px)); margin: 0 auto; }
+    .topbar-inner { padding: 28px 0 24px; }
+    .brandline { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+    .brandmark {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; border-radius: 12px;
+      color: var(--ink); background: var(--accent); font-weight: 900; letter-spacing: -.04em;
+    }
+    h1 { margin: 0; font-size: clamp(1.55rem, 3vw, 2.4rem); letter-spacing: -.045em; line-height: 1.08; }
+    .edition { margin: 7px 0 0; color: #bdc8c4; font-size: .9rem; }
+
+    main { padding: 24px 0 56px; }
+    .dashboard {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) repeat(3, minmax(130px, 180px));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .summary-note, .metric {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 15px;
+      box-shadow: 0 6px 18px rgba(20,42,34,.04);
+    }
+    .summary-note { padding: 18px 20px; color: #394640; }
+    .summary-note strong { color: var(--ink); }
+    .metric { padding: 15px 17px; display: flex; flex-direction: column; justify-content: center; }
+    .metric span { color: var(--muted); font-size: .82rem; }
+    .metric b { font-size: 1.7rem; line-height: 1.15; letter-spacing: -.04em; }
+
+    .controls {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(237,243,240,.94); backdrop-filter: blur(12px);
+      padding: 10px 0 12px;
+    }
+    .control-panel {
+      display: grid; grid-template-columns: minmax(250px, 1.45fr) repeat(3, minmax(150px, .62fr)) auto;
+      gap: 10px; background: var(--surface); padding: 12px;
+      border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
+    }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-size: .78rem; color: var(--muted); font-weight: 700; }
+    .search-wrap { position: relative; }
+    .search-wrap::before { content: "⌕"; position: absolute; left: 13px; top: 8px; font-size: 1.25rem; color: #52615b; }
+    input, select {
+      width: 100%; min-height: 44px; border: 1px solid #cbd6d1; border-radius: 10px;
+      background: #fbfdfc; color: var(--ink); padding: 9px 11px; outline: none;
+    }
+    input { padding-left: 39px; }
+    input:focus, select:focus { border-color: #607a3d; box-shadow: 0 0 0 3px rgba(217,255,87,.38); }
+    .reset {
+      align-self: end; min-height: 44px; border: 1px solid #cbd6d1; border-radius: 10px;
+      background: #fff; color: var(--ink); padding: 0 15px; font-weight: 700;
+    }
+    .reset:hover { background: var(--soft); }
+
+    .active-filters { display: flex; gap: 7px; flex-wrap: wrap; min-height: 31px; align-items: center; margin: 8px 2px 11px; }
+    .filter-chip { border: 1px solid #ccd7d2; border-radius: 999px; padding: 4px 10px; background: #fff; color: #435049; font-size: .8rem; }
+    .filter-chip:hover { border-color: #87968f; }
+    .result-meta { color: var(--muted); font-size: .9rem; margin: 4px 1px 12px; }
+
+    .list { display: grid; gap: 13px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 17px;
+      box-shadow: 0 6px 16px rgba(20,42,34,.035); overflow: hidden;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .card:hover { border-color: #becbc5; box-shadow: var(--shadow); transform: translateY(-1px); }
+    .card-head {
+      display: grid; grid-template-columns: 72px minmax(0, 1fr) minmax(145px, 180px) 30px;
+      gap: 16px; align-items: center; padding: 18px 20px;
+    }
+    .rank {
+      width: 58px; height: 58px; border-radius: 15px; background: var(--ink); color: var(--accent);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-weight: 900; line-height: 1;
+    }
+    .rank small { color: #c6d0cc; font-size: .66rem; margin-top: 5px; font-weight: 600; }
+    .hook-title { margin: 0; font-size: clamp(1.05rem, 2vw, 1.28rem); line-height: 1.3; letter-spacing: -.018em; }
+    .translation { color: var(--muted); margin: 4px 0 0; font-size: .88rem; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .chip { padding: 3px 9px; border-radius: 999px; background: var(--soft); color: #4b5a53; font-size: .75rem; white-space: nowrap; }
+    .chip.category { background: #ece9ff; color: #4e3ca0; }
+    .chip.low { background: var(--risk-low); color: #246334; }
+    .chip.mid { background: var(--risk-mid); color: #815b00; }
+    .chip.high { background: var(--risk-high); color: #912f2a; }
+    .score { text-align: right; }
+    .score b { display: block; font-size: 1.55rem; letter-spacing: -.05em; line-height: 1.05; }
+    .score span { color: var(--muted); font-size: .76rem; }
+    .stars { color: #516e1f; letter-spacing: 1px; font-size: .84rem; margin-top: 4px; }
+    .chevron { color: #50605a; font-size: 1.1rem; transition: transform .2s ease; }
+    .card.open .chevron { transform: rotate(180deg); }
+
+    .details { display: none; border-top: 1px solid var(--line); background: #fbfdfc; padding: 20px; }
+    .card.open .details { display: block; }
+    .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .detail-box { border: 1px solid #e0e7e3; border-radius: 12px; padding: 13px 14px; background: #fff; }
+    .detail-box.full { grid-column: 1 / -1; }
+    .detail-box h3 { margin: 0 0 5px; font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    .detail-box p { margin: 0; font-size: .92rem; }
+    .source-row { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 12px; }
+    .source-link { color: #334db5; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .verify { display: inline-flex; margin-left: 8px; border-radius: 999px; padding: 2px 8px; font-size: .73rem; background: var(--soft); color: var(--muted); }
+    .score-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 9px; }
+    .score-item { background: var(--soft); border-radius: 10px; padding: 9px 10px; }
+    .score-item span { display: block; color: var(--muted); font-size: .75rem; }
+    .score-item b { font-size: 1rem; }
+    .copy-btn {
+      min-height: 38px; border: 0; border-radius: 9px; padding: 0 13px; background: var(--ink); color: #fff; font-weight: 750;
+    }
+    .copy-btn:hover { color: var(--accent); }
+
+    .empty { display: none; background: #fff; border: 1px dashed #bcc9c3; border-radius: 16px; padding: 40px 20px; text-align: center; color: var(--muted); }
+    footer { width: min(1460px, calc(100% - 40px)); margin: 0 auto; padding: 0 0 36px; color: var(--muted); font-size: .8rem; }
+
+    @media (max-width: 980px) {
+      .dashboard { grid-template-columns: repeat(3, 1fr); }
+      .summary-note { grid-column: 1 / -1; }
+      .control-panel { grid-template-columns: 1fr 1fr; }
+      .field:first-child { grid-column: 1 / -1; }
+      .reset { align-self: end; }
+      .card-head { grid-template-columns: 64px minmax(0,1fr) 145px 24px; gap: 11px; }
+    }
+    @media (max-width: 680px) {
+      .topbar-inner, main, footer { width: min(100% - 24px, 1460px); }
+      .dashboard { grid-template-columns: 1fr 1fr; }
+      .metric:last-child { grid-column: 1 / -1; }
+      .controls { position: static; }
+      .control-panel { grid-template-columns: 1fr; }
+      .field:first-child { grid-column: auto; }
+      .card-head { grid-template-columns: 50px minmax(0,1fr) 24px; padding: 15px 14px; }
+      .rank { width: 48px; height: 48px; border-radius: 12px; }
+      .score { grid-column: 2; text-align: left; display: flex; align-items: baseline; gap: 8px; }
+      .score b { font-size: 1.22rem; }
+      .chevron { grid-column: 3; grid-row: 1 / span 2; }
+      .detail-grid, .source-row { grid-template-columns: 1fr; }
+      .score-grid { grid-template-columns: 1fr 1fr; }
+      .copy-btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brandline">
+        <div class="brandmark" aria-hidden="true">PV</div>
+        <div>
+          <h1>Facebook 运动装短视频 Hook 选题库</h1>
+          <p class="edition" id="edition"></p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="dashboard" aria-label="选题概览">
+      <div class="summary-note" id="research-note"></div>
+      <div class="metric"><span>本期 Hooks</span><b id="total-count">—</b></div>
+      <div class="metric"><span>平均推荐指数</span><b id="avg-score">—</b></div>
+      <div class="metric"><span>来源已核实</span><b id="verified-count">—</b></div>
+    </section>
+
+    <section class="controls" aria-label="筛选工具">
+      <div class="control-panel">
+        <div class="field">
+          <label for="search">关键词搜索</label>
+          <div class="search-wrap"><input id="search" type="search" placeholder="搜索 Hook、痛点、人群、标签或来源…" autocomplete="off"></div>
+        </div>
+        <div class="field">
+          <label for="category">内容分类</label>
+          <select id="category"><option value="all">全部分类</option></select>
+        </div>
+        <div class="field">
+          <label for="risk">风险等级</label>
+          <select id="risk">
+            <option value="all">全部风险</option>
+            <option value="低">低风险</option>
+            <option value="中">中风险</option>
+            <option value="高">高风险</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sort">推荐指数排序</label>
+          <select id="sort">
+            <option value="score-desc">推荐指数：高 → 低</option>
+            <option value="score-asc">推荐指数：低 → 高</option>
+            <option value="id-asc">编号：小 → 大</option>
+          </select>
+        </div>
+        <button class="reset" id="reset" type="button">重置</button>
+      </div>
+      <div class="active-filters" id="active-filters" aria-live="polite"></div>
+    </section>
+
+    <p class="result-meta" id="result-meta" aria-live="polite"></p>
+    <section class="list" id="hook-list" aria-label="Hook 选题列表"></section>
+    <div class="empty" id="empty">没有符合当前条件的选题。请清除关键词或重置筛选。</div>
+  </main>
+
+  <footer>研究用于选题启发，不代表平台播放保证。上线前请再次核对产品规格、素材授权、广告政策与来源页面状态。</footer>
+
+  <script src="hooks-data.js"></script>
+  <script>
+    (() => {
+      const hooks = Array.isArray(window.HOOKS) ? window.HOOKS : [];
+      const meta = window.HOOK_LIBRARY_META || {};
+      const els = {
+        search: document.querySelector('#search'),
+        category: document.querySelector('#category'),
+        risk: document.querySelector('#risk'),
+        sort: document.querySelector('#sort'),
+        reset: document.querySelector('#reset'),
+        list: document.querySelector('#hook-list'),
+        empty: document.querySelector('#empty'),
+        result: document.querySelector('#result-meta'),
+        filters: document.querySelector('#active-filters')
+      };
+      const state = { query: '', category: 'all', risk: 'all', sort: 'score-desc' };
+      const safe = value => String(value ?? '').replace(/[&<>"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));
+      const riskClass = level => level === '低' ? 'low' : level === '中' ? 'mid' : 'high';
+      const starText = value => '★★★★★'.slice(0, Math.round(value)) + '☆☆☆☆☆'.slice(Math.round(value));
+      const searchable = item => [item.hook, item.translation, item.category, item.audience, item.painPoint, item.angle, item.reason, item.risk, item.openingShot, item.source.title, item.source.platform, ...(item.tags || []), ...(item.riskTags || [])].join(' ').toLowerCase();
+
+      document.querySelector('#edition').textContent = `${meta.edition || ''} · ${meta.researchWindow || ''}`;
+      document.querySelector('#research-note').innerHTML = `<strong>口径：</strong>${safe(meta.note || '')}`;
+      document.querySelector('#total-count').textContent = hooks.length;
+      document.querySelector('#avg-score').textContent = hooks.length ? (hooks.reduce((sum, item) => sum + item.recommendation, 0) / hooks.length).toFixed(1) : '—';
+      document.querySelector('#verified-count').textContent = `${hooks.filter(item => item.source.verification === '已核实').length}/${hooks.length}`;
+
+      [...new Set(hooks.map(item => item.category))].sort((a,b) => a.localeCompare(b, 'zh-CN')).forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        els.category.appendChild(option);
+      });
+
+      function filteredHooks() {
+        const query = state.query.trim().toLowerCase();
+        const result = hooks.filter(item => {
+          const matchesQuery = !query || searchable(item).includes(query);
+          const matchesCategory = state.category === 'all' || item.category === state.category;
+          const matchesRisk = state.risk === 'all' || item.riskLevel === state.risk;
+          return matchesQuery && matchesCategory && matchesRisk;
+        });
+        return result.sort((a, b) => {
+          if (state.sort === 'score-asc') return a.recommendation - b.recommendation || a.id.localeCompare(b.id);
+          if (state.sort === 'id-asc') return a.id.localeCompare(b.id);
+          return b.recommendation - a.recommendation || a.id.localeCompare(b.id);
+        });
+      }
+
+      function renderFilters() {
+        const filters = [];
+        if (state.query) filters.push({ key: 'query', label: `关键词：${state.query}` });
+        if (state.category !== 'all') filters.push({ key: 'category', label: `分类：${state.category}` });
+        if (state.risk !== 'all') filters.push({ key: 'risk', label: `风险：${state.risk}` });
+        els.filters.innerHTML = filters.length
+          ? filters.map(item => `<button class="filter-chip" type="button" data-clear="${item.key}">${safe(item.label)} ×</button>`).join('')
+          : '<span class="filter-chip" style="cursor:default">当前显示全部选题</span>';
+      }
+
+      function cardTemplate(item, index) {
+        const scoreLabels = { relevance: '相关性', virality: '传播性', practicality: '实用性', riskControl: '风险可控性' };
+        const scoreGrid = Object.entries(item.scores).map(([key, value]) => `<div class="score-item"><span>${scoreLabels[key]}</span><b>${value}/5</b></div>`).join('');
+        return `
+          <article class="card" data-id="${safe(item.id)}">
+            <div class="card-head" role="button" tabindex="0" aria-expanded="false" aria-controls="details-${safe(item.id)}">
+              <div class="rank">${String(index + 1).padStart(2, '0')}<small>${safe(item.id)}</small></div>
+              <div>
+                <h2 class="hook-title">${safe(item.hook)}</h2>
+                <p class="translation">${safe(item.translation)}</p>
+                <div class="chips">
+                  <span class="chip category">${safe(item.category)}</span>
+                  <span class="chip ${riskClass(item.riskLevel)}">${safe(item.riskLevel)}风险</span>
+                  ${(item.tags || []).slice(0, 3).map(tag => `<span class="chip">${safe(tag)}</span>`).join('')}
+                </div>
+              </div>
+              <div class="score"><b>${item.recommendation.toFixed(1)}</b><span>推荐指数 / 5</span><div class="stars" aria-label="${item.recommendation} 星">${starText(item.recommendation)}</div></div>
+              <div class="chevron" aria-hidden="true">⌄</div>
+            </div>
+            <div class="details" id="details-${safe(item.id)}">
+              <div class="detail-grid">
+                <div class="detail-box"><h3>适合人群</h3><p>${safe(item.audience)}</p></div>
+                <div class="detail-box"><h3>用户痛点</h3><p>${safe(item.painPoint)}</p></div>
+                <div class="detail-box"><h3>内容切入角度</h3><p>${safe(item.angle)}</p></div>
+                <div class="detail-box"><h3>推荐理由</h3><p>${safe(item.reason)}</p></div>
+                <div class="detail-box full"><h3>建议开场画面</h3><p>${safe(item.openingShot)}</p></div>
+                <div class="detail-box full"><h3>风险提醒</h3><p><span class="chip ${riskClass(item.riskLevel)}">${safe(item.riskLevel)}风险</span> ${safe(item.risk)} ${(item.riskTags || []).map(tag => `<span class="chip">${safe(tag)}</span>`).join(' ')}</p></div>
+                <div class="detail-box full">
+                  <div class="source-row">
+                    <div>
+                      <h3>参考来源</h3>
+                      <p><a class="source-link" href="${safe(item.source.url)}" target="_blank" rel="noopener noreferrer">${safe(item.source.title)}</a><span class="verify">${safe(item.source.verification)}</span></p>
+                      <p style="margin-top:5px;color:var(--muted)">${safe(item.source.platform)} · ${safe(item.source.publishedAt)} · ${safe(item.source.signal)}</p>
+                    </div>
+                    <button class="copy-btn" type="button" data-copy="${safe(item.id)}">复制 Hook</button>
+                  </div>
+                  <div class="score-grid">${scoreGrid}</div>
+                </div>
+              </div>
+            </div>
+          </article>`;
+      }
+
+      function render() {
+        const items = filteredHooks();
+        els.list.innerHTML = items.map(cardTemplate).join('');
+        els.result.textContent = `显示 ${items.length} / ${hooks.length} 条选题`;
+        els.empty.style.display = items.length ? 'none' : 'block';
+        renderFilters();
+      }
+
+      function clearFilter(key) {
+        if (key === 'query') { state.query = ''; els.search.value = ''; }
+        if (key === 'category') { state.category = 'all'; els.category.value = 'all'; }
+        if (key === 'risk') { state.risk = 'all'; els.risk.value = 'all'; }
+        render();
+      }
+
+      els.search.addEventListener('input', event => { state.query = event.target.value; render(); });
+      els.category.addEventListener('change', event => { state.category = event.target.value; render(); });
+      els.risk.addEventListener('change', event => { state.risk = event.target.value; render(); });
+      els.sort.addEventListener('change', event => { state.sort = event.target.value; render(); });
+      els.reset.addEventListener('click', () => {
+        Object.assign(state, { query: '', category: 'all', risk: 'all', sort: 'score-desc' });
+        els.search.value = ''; els.category.value = 'all'; els.risk.value = 'all'; els.sort.value = 'score-desc';
+        render();
+      });
+      els.filters.addEventListener('click', event => {
+        const button = event.target.closest('[data-clear]');
+        if (button) clearFilter(button.dataset.clear);
+      });
+      els.list.addEventListener('click', async event => {
+        const copyButton = event.target.closest('[data-copy]');
+        if (copyButton) {
+          event.stopPropagation();
+          const item = hooks.find(hook => hook.id === copyButton.dataset.copy);
+          if (!item) return;
+          try {
+            await navigator.clipboard.writeText(item.hook);
+            const original = copyButton.textContent;
+            copyButton.textContent = '已复制';
+            setTimeout(() => copyButton.textContent = original, 1200);
+          } catch (_) {
+            copyButton.textContent = '请手动复制';
+          }
+          return;
+        }
+        const head = event.target.closest('.card-head');
+        if (!head) return;
+        const card = head.closest('.card');
+        const open = card.classList.toggle('open');
+        head.setAttribute('aria-expanded', String(open));
+      });
+      els.list.addEventListener('keydown', event => {
+        if ((event.key === 'Enter' || event.key === ' ') && event.target.classList.contains('card-head')) {
+          event.preventDefault(); event.target.click();
+        }
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
